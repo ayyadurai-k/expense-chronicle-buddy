@@ -13,7 +13,7 @@ const ExpenseSummary: React.FC<ExpenseSummaryProps> = ({ totalAmount, date }) =>
   
   return (
     <div className="expense-card mb-6">
-      <h2 className="text-lg font-medium text-foreground flex items-center">
+      <h2 className="text-lg font-medium text-white flex items-center">
         <span>Expenses for {format(date, 'dd MMMM yyyy')}</span>
         {dateIsToday && <span className="today-badge">Today</span>}
       </h2>

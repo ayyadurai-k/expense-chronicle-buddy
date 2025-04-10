@@ -7,7 +7,7 @@
 
 @layer base {
   :root {
-    --background: 222 47% 8%;
+    --background: 222 47% 6%;
     --foreground: 0 0% 98%;
 
     --card: 222 47% 8%;
@@ -16,10 +16,10 @@
     --popover: 222 47% 8%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 222 83% 57%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 322 100% 77%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 47% 5%;
+    --secondary: 222 47% 10%;
     --secondary-foreground: 0 0% 98%;
 
     --muted: 223 47% 15%;
@@ -33,18 +33,18 @@
 
     --border: 223 47% 15%;
     --input: 223 47% 15%;
-    --ring: 222 83% 57%;
+    --ring: 322 100% 77%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 222 47% 8%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 222 83% 57%;
+    --sidebar-primary: 322 100% 77%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 223 47% 15%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 223 47% 15%;
-    --sidebar-ring: 222 83% 57%;
+    --sidebar-ring: 322 100% 77%;
   }
 
   .dark {
@@ -112,5 +112,9 @@
 
   .today-badge {
     @apply bg-primary text-white text-xs font-medium px-2 py-1 rounded-full ml-2;
+  }
+  
+  .expense-title {
+    @apply font-medium text-white mb-2;
   }
 }

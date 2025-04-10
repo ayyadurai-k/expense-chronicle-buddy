@@ -34,7 +34,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
         >
           <div className="flex-1">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="font-medium text-gray-800">{expense.title}</h3>
+              <h3 className="expense-title">{expense.title}</h3>
               <span className="expense-amount">{formatCurrency(expense.amount)}</span>
             </div>
             
@@ -42,7 +42,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
               <span className="expense-category">{expense.category}</span>
               
               {expense.notes && (
-                <p className="text-sm text-gray-500 mt-1 truncate max-w-[200px]">
+                <p className="text-sm text-gray-400 mt-1 truncate max-w-[200px]">
                   {expense.notes}
                 </p>
               )}
@@ -54,7 +54,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
               variant="ghost" 
               size="icon"
               onClick={() => onEditExpense(expense)}
-              className="h-8 w-8 text-gray-500 hover:text-primary"
+              className="h-8 w-8 text-gray-400 hover:text-primary"
             >
               <Edit className="h-4 w-4" />
             </Button>
@@ -63,7 +63,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
               variant="ghost" 
               size="icon"
               onClick={() => onDeleteExpense(expense.id)}
-              className="h-8 w-8 text-gray-500 hover:text-destructive"
+              className="h-8 w-8 text-gray-400 hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
