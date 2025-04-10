@@ -14,8 +14,13 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ selectedDate, onDateChange, onProfileClick }) => {
+  // Disable future dates
+  const isDateInFuture = (date: Date) => {
+    return date > new Date(new Date().setHours(23, 59, 59, 999));
+  };
+
   return (
-    <header className="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
+    <header className="bg-secondary shadow-md p-4 flex justify-between items-center sticky top-0 z-10">
       <div className="flex items-center space-x-4">
         <h1 className="text-2xl font-bold text-primary">Expense Chronicle</h1>
         
@@ -31,6 +36,7 @@ const Header: React.FC<HeaderProps> = ({ selectedDate, onDateChange, onProfileCl
               mode="single"
               selected={selectedDate}
               onSelect={(date) => date && onDateChange(date)}
+              disabled={isDateInFuture}
               initialFocus
               className={cn("p-3 pointer-events-auto")}
             />

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { format, isToday } from 'date-fns';
 import { formatCurrency } from '@/utils/formatters';
 
 interface ExpenseSummaryProps {
@@ -8,16 +9,17 @@ interface ExpenseSummaryProps {
 }
 
 const ExpenseSummary: React.FC<ExpenseSummaryProps> = ({ totalAmount, date }) => {
-  const isToday = new Date().toDateString() === date.toDateString();
+  const dateIsToday = isToday(date);
   
   return (
     <div className="expense-card mb-6">
-      <h2 className="text-lg font-medium text-gray-700">
-        {isToday ? "Today's" : "Selected Date's"} Expenses
+      <h2 className="text-lg font-medium text-foreground flex items-center">
+        <span>Expenses for {format(date, 'dd MMMM yyyy')}</span>
+        {dateIsToday && <span className="today-badge">Today</span>}
       </h2>
       <div className="mt-2 flex justify-between items-center">
-        <p className="text-gray-500">Total</p>
-        <p className="text-3xl font-bold text-expense-blue">
+        <p className="text-muted-foreground">Total</p>
+        <p className="text-3xl font-bold text-primary">
           {formatCurrency(totalAmount)}
         </p>
       </div>

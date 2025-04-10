@@ -8,6 +8,16 @@ import ExpenseForm from '@/components/ExpenseForm';
 import ProfileSection from '@/components/ProfileSection';
 import { Button } from '@/components/ui/button';
 import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { 
   Expense, 
   Category,
   getAllExpenses,
@@ -29,6 +39,10 @@ const Index = () => {
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState<boolean>(false);
   const [expenseToEdit, setExpenseToEdit] = useState<Expense | undefined>(undefined);
   const [showProfile, setShowProfile] = useState<boolean>(false);
+  
+  // For delete confirmation
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
 
   // Load expenses and categories on mount and when selected date changes
   useEffect(() => {
@@ -75,11 +89,23 @@ const Index = () => {
   };
 
   const handleDeleteExpense = (id: string) => {
-    deleteExpense(id);
-    toast.success('Expense deleted successfully');
-    
-    // Refresh expense data
-    loadExpensesForDate(selectedDate);
+    // Instead of deleting immediately, open confirmation dialog
+    setExpenseToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteExpense = () => {
+    if (expenseToDelete) {
+      deleteExpense(expenseToDelete);
+      toast.success('Expense deleted successfully');
+      
+      // Refresh expense data
+      loadExpensesForDate(selectedDate);
+      
+      // Close dialog and reset state
+      setIsDeleteDialogOpen(false);
+      setExpenseToDelete(null);
+    }
   };
 
   const handleAddCategory = (name: string) => {
@@ -94,7 +120,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header 
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
@@ -126,6 +152,24 @@ const Index = () => {
           selectedDate={selectedDate}
           expenseToEdit={expenseToEdit}
         />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this expense? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setExpenseToDelete(null)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDeleteExpense} className="bg-destructive text-destructive-foreground">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
     </div>
   );
