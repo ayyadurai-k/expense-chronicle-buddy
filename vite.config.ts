@@ -12,5 +12,9 @@ export default defineConfig({
     },
   },
   // Add specific env variable handling if needed
-  envPrefix: 'VITE_'
+  envPrefix: 'VITE_',
+  // Configure server to use port 8080
+  server: {
+    port: 8080
+  }
 })
