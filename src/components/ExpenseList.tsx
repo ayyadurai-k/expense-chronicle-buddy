@@ -26,11 +26,11 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {expenses.map((expense) => (
         <div 
           key={expense.id} 
-          className="expense-card flex justify-between items-center"
+          className="expense-entry flex justify-between items-center"
         >
           <div className="flex-1">
             <div className="flex justify-between items-start mb-2">
