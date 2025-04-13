@@ -8,6 +8,7 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Expense, Category, formatDateToString } from '@/services/expenseService';
+import { ScrollArea } from './ui/scroll-area';
 
 interface ExpenseFormProps {
   isOpen: boolean;
@@ -35,6 +36,16 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const [newCategory, setNewCategory] = useState('');
   const [showCategoryInput, setShowCategoryInput] = useState(false);
   
+  // Filter out duplicate categories based on name
+  const uniqueCategories = categories.reduce((acc: Category[], current) => {
+    const x = acc.find(item => item.name === current.name);
+    if (!x) {
+      return acc.concat([current]);
+    } else {
+      return acc;
+    }
+  }, []);
+  
   // Reset form when opened or when expense to edit changes
   useEffect(() => {
     if (isOpen) {
@@ -42,7 +53,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         setTitle(expenseToEdit.title);
         setAmount(expenseToEdit.amount.toString());
         
-        const category = categories.find(c => c.name === expenseToEdit.category);
+        const category = uniqueCategories.find(c => c.name === expenseToEdit.category);
         if (category) {
           setCategoryId(category.id);
         }
@@ -52,7 +63,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         resetForm();
       }
     }
-  }, [isOpen, expenseToEdit, categories]);
+  }, [isOpen, expenseToEdit, uniqueCategories]);
 
   const resetForm = () => {
     setTitle('');
@@ -69,7 +80,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       return;
     }
 
-    const selectedCategory = categories.find(c => c.id === categoryId);
+    const selectedCategory = uniqueCategories.find(c => c.id === categoryId);
     if (!selectedCategory) return;
 
     const expenseData = {
@@ -78,7 +89,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       category: selectedCategory.name,
       notes: notes.trim(),
       date: formatDateToString(selectedDate),
-      ...(expenseToEdit && { id: expenseToEdit.id })
+      ...(expenseToEdit && { id: expenseToEdit.id, userId: expenseToEdit.userId })
     };
 
     onSave(expenseData as any);
@@ -96,26 +107,27 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-card text-white">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-white">
             {expenseToEdit ? 'Edit Expense' : 'Add New Expense'}
           </DialogTitle>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title" className="text-white">Title</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="What did you spend on?"
+              className="bg-secondary border-border text-white"
             />
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="amount">Amount (₹)</Label>
+            <Label htmlFor="amount" className="text-white">Amount (₹)</Label>
             <Input
               id="amount"
               type="number"
@@ -124,17 +136,19 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
+              className="bg-secondary border-border text-white"
             />
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category" className="text-white">Category</Label>
             {showCategoryInput ? (
               <div className="flex gap-2">
                 <Input
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
                   placeholder="New category name"
+                  className="bg-secondary border-border text-white"
                 />
                 <Button onClick={handleAddCategory} type="button">Add</Button>
                 <Button 
@@ -148,15 +162,17 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             ) : (
               <div className="flex gap-2">
                 <Select value={categoryId} onValueChange={setCategoryId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-secondary border-border text-white">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
+                  <SelectContent className="bg-secondary border-border">
+                    <ScrollArea className="h-[200px]">
+                      {uniqueCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </ScrollArea>
                   </SelectContent>
                 </Select>
                 <Button 
@@ -173,12 +189,13 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Label htmlFor="notes" className="text-white">Notes (Optional)</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Any additional details..."
+              className="bg-secondary border-border text-white"
               rows={3}
             />
           </div>

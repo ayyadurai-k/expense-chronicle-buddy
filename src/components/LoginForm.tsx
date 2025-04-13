@@ -53,10 +53,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterClick }) => 
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 space-y-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
+    <div className="w-full max-w-md mx-auto p-6 space-y-6 bg-card rounded-lg shadow-md">
       <div className="text-center">
-        <h2 className="text-2xl font-bold">Login</h2>
-        <p className="text-muted-foreground mt-2">Welcome back! Please sign in to your account</p>
+        <h2 className="text-2xl font-bold text-white">Login</h2>
+        <p className="text-primary-foreground mt-2">Welcome back! Please sign in to your account</p>
       </div>
       
       <Form {...form}>
@@ -66,18 +66,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterClick }) => 
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="text-white">Email</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="youremail@example.com"
-                      className="pl-10"
+                      className="pl-10 bg-secondary border-border text-white"
                       {...field}
                     />
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-destructive" />
               </FormItem>
             )}
           />
@@ -87,24 +87,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterClick }) => 
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="text-white">Password</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="password"
                       placeholder="******"
-                      className="pl-10"
+                      className="pl-10 bg-secondary border-border text-white"
                       {...field}
                     />
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-destructive" />
               </FormItem>
             )}
           />
           
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -118,9 +118,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterClick }) => 
       </Form>
       
       <div className="text-center mt-4">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-primary-foreground">
           Don't have an account?{' '}
-          <Button variant="link" className="p-0" onClick={onRegisterClick}>
+          <Button variant="link" className="p-0 text-primary" onClick={onRegisterClick}>
             Register
           </Button>
         </p>

@@ -115,10 +115,52 @@
   }
 
   .today-badge {
-    @apply bg-primary text-white text-xs font-medium px-2 py-1 rounded-full ml-2;
+    @apply bg-primary text-white text-xs font-medium px-2 py-1 rounded-full;
   }
   
   .expense-title {
     @apply font-medium text-white mb-2;
   }
+}
+
+/* Mobile responsiveness fix */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .popover-content {
+    max-width: 90vw;
+  }
+}
+
+/* Make the dropdown more visible in dark theme */
+.select-content,
+.popover-content,
+.dialog-content {
+  @apply bg-secondary border border-border;
+}
+
+/* Fix scrolling issues */
+html, 
+body, 
+#root {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make form labels more visible */
+.form-label {
+  @apply text-white font-medium;
+}
+
+/* Make error messages more visible */
+.form-message {
+  @apply text-destructive font-medium mt-1;
 }

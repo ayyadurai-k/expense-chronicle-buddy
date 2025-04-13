@@ -61,10 +61,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onLoginClick }) 
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 space-y-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
+    <div className="w-full max-w-md mx-auto p-6 space-y-6 bg-card rounded-lg shadow-md">
       <div className="text-center">
-        <h2 className="text-2xl font-bold">Create Account</h2>
-        <p className="text-muted-foreground mt-2">Create a new account to track your expenses</p>
+        <h2 className="text-2xl font-bold text-white">Create Account</h2>
+        <p className="text-primary-foreground mt-2">Create a new account to track your expenses</p>
       </div>
       
       <Form {...form}>
@@ -74,18 +74,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onLoginClick }) 
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel className="text-white">Name</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="John Doe"
-                      className="pl-10"
+                      className="pl-10 bg-secondary border-border text-white"
                       {...field}
                     />
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-destructive" />
               </FormItem>
             )}
           />
@@ -95,18 +95,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onLoginClick }) 
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="text-white">Email</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="youremail@example.com"
-                      className="pl-10"
+                      className="pl-10 bg-secondary border-border text-white"
                       {...field}
                     />
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-destructive" />
               </FormItem>
             )}
           />
@@ -116,19 +116,19 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onLoginClick }) 
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="text-white">Password</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="password"
                       placeholder="******"
-                      className="pl-10"
+                      className="pl-10 bg-secondary border-border text-white"
                       {...field}
                     />
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-destructive" />
               </FormItem>
             )}
           />
@@ -138,24 +138,24 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onLoginClick }) 
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel className="text-white">Confirm Password</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="password"
                       placeholder="******"
-                      className="pl-10"
+                      className="pl-10 bg-secondary border-border text-white"
                       {...field}
                     />
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-destructive" />
               </FormItem>
             )}
           />
           
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -169,9 +169,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onLoginClick }) 
       </Form>
       
       <div className="text-center mt-4">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-primary-foreground">
           Already have an account?{' '}
-          <Button variant="link" className="p-0" onClick={onLoginClick}>
+          <Button variant="link" className="p-0 text-primary" onClick={onLoginClick}>
             Login
           </Button>
         </p>

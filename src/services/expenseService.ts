@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import { 
@@ -9,7 +8,9 @@ import {
   deleteDoc, 
   getDocs, 
   query, 
-  where 
+  where,
+  getDoc,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { getCurrentUser } from '@/services/authService';
@@ -32,22 +33,36 @@ export interface Category {
 
 // Default categories
 const DEFAULT_CATEGORIES: Omit<Category, 'userId'>[] = [
-  { id: uuidv4(), name: 'Food' },
-  { id: uuidv4(), name: 'Transportation' },
-  { id: uuidv4(), name: 'Entertainment' },
-  { id: uuidv4(), name: 'Shopping' },
-  { id: uuidv4(), name: 'Utilities' },
-  { id: uuidv4(), name: 'Health' },
-  { id: uuidv4(), name: 'Other' }
+  { id: "cat-food-default", name: 'Food' },
+  { id: "cat-transportation-default", name: 'Transportation' },
+  { id: "cat-entertainment-default", name: 'Entertainment' },
+  { id: "cat-shopping-default", name: 'Shopping' },
+  { id: "cat-utilities-default", name: 'Utilities' },
+  { id: "cat-health-default", name: 'Health' },
+  { id: "cat-other-default", name: 'Other' }
 ];
 
 // Collection references
 const EXPENSES_COLLECTION = 'expenses';
 const CATEGORIES_COLLECTION = 'categories';
+const INITIALIZED_FLAG_DOC = 'initialized_flag';
 
 // Format date to YYYY-MM-DD
 export const formatDateToString = (date: Date): string => {
   return format(date, 'yyyy-MM-dd');
+};
+
+// Check if user categories have been initialized
+const isUserInitialized = async (userId: string): Promise<boolean> => {
+  const flagRef = doc(db, CATEGORIES_COLLECTION, `${userId}_${INITIALIZED_FLAG_DOC}`);
+  const flagDoc = await getDoc(flagRef);
+  return flagDoc.exists();
+};
+
+// Mark user as initialized
+const markUserInitialized = async (userId: string): Promise<void> => {
+  const flagRef = doc(db, CATEGORIES_COLLECTION, `${userId}_${INITIALIZED_FLAG_DOC}`);
+  await setDoc(flagRef, { initialized: true, timestamp: new Date().toISOString() });
 };
 
 // Initialize Firestore with default categories if needed
@@ -55,16 +70,23 @@ export const initializeFirestore = async (): Promise<void> => {
   const user = await getCurrentUser();
   if (!user) return;
   
-  const categoriesRef = collection(db, CATEGORIES_COLLECTION);
-  const q = query(categoriesRef, where("userId", "==", user.uid));
-  const categoriesSnapshot = await getDocs(q);
-  
-  if (categoriesSnapshot.empty) {
-    // Add default categories to Firestore
-    for (const category of DEFAULT_CATEGORIES) {
-      await addDoc(categoriesRef, { ...category, userId: user.uid });
-    }
+  // Check if user already has categories initialized
+  const userInitialized = await isUserInitialized(user.uid);
+  if (userInitialized) {
+    console.log("User categories already initialized, skipping");
+    return;
   }
+  
+  console.log("Initializing default categories for new user");
+  const categoriesRef = collection(db, CATEGORIES_COLLECTION);
+  
+  // Add default categories to Firestore
+  for (const category of DEFAULT_CATEGORIES) {
+    await addDoc(categoriesRef, { ...category, userId: user.uid });
+  }
+  
+  // Mark user as initialized to prevent duplicate categories
+  await markUserInitialized(user.uid);
 };
 
 // Get all expenses for current user
