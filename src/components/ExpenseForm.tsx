@@ -9,6 +9,7 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Expense, Category, formatDateToString } from '@/services/expenseService';
 import { ScrollArea } from './ui/scroll-area';
+import { toast } from 'sonner';
 
 interface ExpenseFormProps {
   isOpen: boolean;
@@ -56,6 +57,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         const category = uniqueCategories.find(c => c.name === expenseToEdit.category);
         if (category) {
           setCategoryId(category.id);
+        } else {
+          setCategoryId('');
         }
         
         setNotes(expenseToEdit.notes || '');
@@ -76,12 +79,26 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
   const handleSave = () => {
     // Basic validation
-    if (!title.trim() || !amount || isNaN(parseFloat(amount)) || !categoryId) {
+    if (!title.trim()) {
+      toast.error('Please enter a title');
+      return;
+    }
+    
+    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    
+    if (!categoryId) {
+      toast.error('Please select a category');
       return;
     }
 
     const selectedCategory = uniqueCategories.find(c => c.id === categoryId);
-    if (!selectedCategory) return;
+    if (!selectedCategory) {
+      toast.error('Selected category not found');
+      return;
+    }
 
     const expenseData = {
       title: title.trim(),
@@ -98,10 +115,43 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   };
 
   const handleAddCategory = () => {
-    if (newCategory.trim()) {
-      onAddCategory(newCategory.trim());
-      setNewCategory('');
-      setShowCategoryInput(false);
+    if (!newCategory.trim()) {
+      toast.error('Please enter a category name');
+      return;
+    }
+    
+    onAddCategory(newCategory.trim());
+    setNewCategory('');
+    setShowCategoryInput(false);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Allow only numbers and a single decimal point
+    const value = e.target.value;
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setAmount(value);
+    }
+  };
+
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNotes(e.target.value);
+  };
+
+  const handleNewCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewCategory(e.target.value);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      if (showCategoryInput) {
+        handleAddCategory();
+      } else {
+        handleSave();
+      }
     }
   };
 
@@ -120,7 +170,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             <Input
               id="title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={handleTitleChange}
+              onKeyPress={handleKeyPress}
               placeholder="What did you spend on?"
               className="bg-secondary border-border text-white"
             />
@@ -130,11 +181,11 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             <Label htmlFor="amount" className="text-white">Amount (₹)</Label>
             <Input
               id="amount"
-              type="number"
-              step="0.01"
-              min="0"
+              type="text"
+              inputMode="decimal"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={handleAmountChange}
+              onKeyPress={handleKeyPress}
               placeholder="0.00"
               className="bg-secondary border-border text-white"
             />
@@ -146,14 +197,18 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
               <div className="flex gap-2">
                 <Input
                   value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
+                  onChange={handleNewCategoryChange}
+                  onKeyPress={handleKeyPress}
                   placeholder="New category name"
                   className="bg-secondary border-border text-white"
                 />
                 <Button onClick={handleAddCategory} type="button">Add</Button>
                 <Button 
                   variant="ghost" 
-                  onClick={() => setShowCategoryInput(false)}
+                  onClick={() => {
+                    setShowCategoryInput(false);
+                    setNewCategory('');
+                  }}
                   type="button"
                 >
                   Cancel
@@ -193,7 +248,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             <Textarea
               id="notes"
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={handleNotesChange}
               placeholder="Any additional details..."
               className="bg-secondary border-border text-white"
               rows={3}
