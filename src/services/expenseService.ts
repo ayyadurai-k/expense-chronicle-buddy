@@ -1,6 +1,17 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
+import { 
+  collection, 
+  doc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  getDocs, 
+  query, 
+  where 
+} from 'firebase/firestore';
+import { db } from '@/firebase/config';
 
 export interface Expense {
   id: string;
@@ -27,87 +38,98 @@ const DEFAULT_CATEGORIES: Category[] = [
   { id: uuidv4(), name: 'Other' }
 ];
 
-// Local Storage Keys
-const EXPENSES_KEY = 'expenses';
-const CATEGORIES_KEY = 'categories';
-
-// Initialize storage if empty
-const initializeStorage = () => {
-  if (!localStorage.getItem(EXPENSES_KEY)) {
-    localStorage.setItem(EXPENSES_KEY, JSON.stringify([]));
-  }
-  
-  if (!localStorage.getItem(CATEGORIES_KEY)) {
-    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(DEFAULT_CATEGORIES));
-  }
-};
+// Collection references
+const EXPENSES_COLLECTION = 'expenses';
+const CATEGORIES_COLLECTION = 'categories';
 
 // Format date to YYYY-MM-DD
 export const formatDateToString = (date: Date): string => {
   return format(date, 'yyyy-MM-dd');
 };
 
+// Initialize Firestore with default categories if needed
+export const initializeFirestore = async (): Promise<void> => {
+  const categoriesRef = collection(db, CATEGORIES_COLLECTION);
+  const categoriesSnapshot = await getDocs(categoriesRef);
+  
+  if (categoriesSnapshot.empty) {
+    // Add default categories to Firestore
+    for (const category of DEFAULT_CATEGORIES) {
+      await addDoc(categoriesRef, category);
+    }
+  }
+};
+
 // Get all expenses
-export const getAllExpenses = (): Expense[] => {
-  initializeStorage();
-  return JSON.parse(localStorage.getItem(EXPENSES_KEY) || '[]');
+export const getAllExpenses = async (): Promise<Expense[]> => {
+  const expensesRef = collection(db, EXPENSES_COLLECTION);
+  const expensesSnapshot = await getDocs(expensesRef);
+  
+  return expensesSnapshot.docs.map(doc => {
+    const data = doc.data() as Omit<Expense, 'id'>;
+    return { id: doc.id, ...data };
+  });
 };
 
 // Get expenses by date
-export const getExpensesByDate = (date: Date): Expense[] => {
+export const getExpensesByDate = async (date: Date): Promise<Expense[]> => {
   const formattedDate = formatDateToString(date);
-  return getAllExpenses().filter(expense => expense.date === formattedDate);
+  const expensesRef = collection(db, EXPENSES_COLLECTION);
+  const q = query(expensesRef, where("date", "==", formattedDate));
+  const expensesSnapshot = await getDocs(q);
+
+  return expensesSnapshot.docs.map(doc => {
+    const data = doc.data() as Omit<Expense, 'id'>;
+    return { id: doc.id, ...data };
+  });
 };
 
 // Get total expenses by date
-export const getTotalExpensesByDate = (date: Date): number => {
-  const expenses = getExpensesByDate(date);
+export const getTotalExpensesByDate = async (date: Date): Promise<number> => {
+  const expenses = await getExpensesByDate(date);
   return expenses.reduce((total, expense) => total + expense.amount, 0);
 };
 
 // Add expense
-export const addExpense = (expense: Omit<Expense, 'id'>): void => {
-  const expenses = getAllExpenses();
-  const newExpense = { ...expense, id: uuidv4() };
-  expenses.push(newExpense);
-  localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses));
+export const addExpense = async (expense: Omit<Expense, 'id'>): Promise<void> => {
+  const expensesRef = collection(db, EXPENSES_COLLECTION);
+  await addDoc(expensesRef, expense);
 };
 
 // Update expense
-export const updateExpense = (expense: Expense): void => {
-  const expenses = getAllExpenses();
-  const index = expenses.findIndex(e => e.id === expense.id);
-  
-  if (index !== -1) {
-    expenses[index] = expense;
-    localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses));
-  }
+export const updateExpense = async (expense: Expense): Promise<void> => {
+  const { id, ...expenseData } = expense;
+  const expenseRef = doc(db, EXPENSES_COLLECTION, id);
+  await updateDoc(expenseRef, expenseData);
 };
 
 // Delete expense
-export const deleteExpense = (id: string): void => {
-  const expenses = getAllExpenses();
-  const updatedExpenses = expenses.filter(expense => expense.id !== id);
-  localStorage.setItem(EXPENSES_KEY, JSON.stringify(updatedExpenses));
+export const deleteExpense = async (id: string): Promise<void> => {
+  const expenseRef = doc(db, EXPENSES_COLLECTION, id);
+  await deleteDoc(expenseRef);
 };
 
 // Get all categories
-export const getAllCategories = (): Category[] => {
-  initializeStorage();
-  return JSON.parse(localStorage.getItem(CATEGORIES_KEY) || '[]');
+export const getAllCategories = async (): Promise<Category[]> => {
+  await initializeFirestore(); // Ensure categories are initialized
+  
+  const categoriesRef = collection(db, CATEGORIES_COLLECTION);
+  const categoriesSnapshot = await getDocs(categoriesRef);
+  
+  return categoriesSnapshot.docs.map(doc => {
+    const data = doc.data() as Omit<Category, 'id'>;
+    return { id: doc.id, ...data };
+  });
 };
 
 // Add category
-export const addCategory = (name: string): void => {
-  const categories = getAllCategories();
-  const newCategory = { id: uuidv4(), name };
-  categories.push(newCategory);
-  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+export const addCategory = async (name: string): Promise<void> => {
+  const categoriesRef = collection(db, CATEGORIES_COLLECTION);
+  await addDoc(categoriesRef, { name });
 };
 
 // Delete category
-export const deleteCategory = (id: string): void => {
-  const categories = getAllCategories();
-  const updatedCategories = categories.filter(category => category.id !== id);
-  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(updatedCategories));
+export const deleteCategory = async (id: string): Promise<void> => {
+  const categoryRef = doc(db, CATEGORIES_COLLECTION, id);
+  await deleteDoc(categoryRef);
 };

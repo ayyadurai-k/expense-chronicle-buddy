@@ -20,14 +20,14 @@ import {
 import { 
   Expense, 
   Category,
-  getAllExpenses,
   getExpensesByDate,
   getTotalExpensesByDate,
   getAllCategories,
   addExpense,
   updateExpense,
   deleteExpense,
-  addCategory
+  addCategory,
+  initializeFirestore
 } from '@/services/expenseService';
 import { toast } from 'sonner';
 
@@ -39,28 +39,56 @@ const Index = () => {
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState<boolean>(false);
   const [expenseToEdit, setExpenseToEdit] = useState<Expense | undefined>(undefined);
   const [showProfile, setShowProfile] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   
   // For delete confirmation
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
 
-  // Load expenses and categories on mount and when selected date changes
+  // Initialize Firebase
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await initializeFirestore();
+      } catch (error) {
+        console.error('Error initializing Firebase:', error);
+        toast.error('Failed to initialize app data');
+      }
+    };
+    
+    init();
+  }, []);
+
+  // Load expenses and categories when selected date changes
   useEffect(() => {
     loadExpensesForDate(selectedDate);
     loadCategories();
   }, [selectedDate]);
 
-  const loadExpensesForDate = (date: Date) => {
-    const expensesForDate = getExpensesByDate(date);
-    const total = getTotalExpensesByDate(date);
-    
-    setExpenses(expensesForDate);
-    setTotalAmount(total);
+  const loadExpensesForDate = async (date: Date) => {
+    setIsLoading(true);
+    try {
+      const expensesForDate = await getExpensesByDate(date);
+      const total = await getTotalExpensesByDate(date);
+      
+      setExpenses(expensesForDate);
+      setTotalAmount(total);
+    } catch (error) {
+      console.error('Error loading expenses:', error);
+      toast.error('Failed to load expenses');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const loadCategories = () => {
-    const allCategories = getAllCategories();
-    setCategories(allCategories);
+  const loadCategories = async () => {
+    try {
+      const allCategories = await getAllCategories();
+      setCategories(allCategories);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      toast.error('Failed to load categories');
+    }
   };
 
   const handleAddExpense = () => {
@@ -73,19 +101,24 @@ const Index = () => {
     setIsExpenseFormOpen(true);
   };
 
-  const handleSaveExpense = (expenseData: Omit<Expense, 'id'> | Expense) => {
-    if ('id' in expenseData) {
-      // Update existing expense
-      updateExpense(expenseData);
-      toast.success('Expense updated successfully');
-    } else {
-      // Add new expense
-      addExpense(expenseData);
-      toast.success('Expense added successfully');
+  const handleSaveExpense = async (expenseData: Omit<Expense, 'id'> | Expense) => {
+    try {
+      if ('id' in expenseData) {
+        // Update existing expense
+        await updateExpense(expenseData);
+        toast.success('Expense updated successfully');
+      } else {
+        // Add new expense
+        await addExpense(expenseData);
+        toast.success('Expense added successfully');
+      }
+      
+      // Refresh expense data
+      await loadExpensesForDate(selectedDate);
+    } catch (error) {
+      console.error('Error saving expense:', error);
+      toast.error('Failed to save expense');
     }
-    
-    // Refresh expense data
-    loadExpensesForDate(selectedDate);
   };
 
   const handleDeleteExpense = (id: string) => {
@@ -94,24 +127,34 @@ const Index = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDeleteExpense = () => {
+  const confirmDeleteExpense = async () => {
     if (expenseToDelete) {
-      deleteExpense(expenseToDelete);
-      toast.success('Expense deleted successfully');
-      
-      // Refresh expense data
-      loadExpensesForDate(selectedDate);
-      
-      // Close dialog and reset state
-      setIsDeleteDialogOpen(false);
-      setExpenseToDelete(null);
+      try {
+        await deleteExpense(expenseToDelete);
+        toast.success('Expense deleted successfully');
+        
+        // Refresh expense data
+        await loadExpensesForDate(selectedDate);
+      } catch (error) {
+        console.error('Error deleting expense:', error);
+        toast.error('Failed to delete expense');
+      } finally {
+        // Close dialog and reset state
+        setIsDeleteDialogOpen(false);
+        setExpenseToDelete(null);
+      }
     }
   };
 
-  const handleAddCategory = (name: string) => {
-    addCategory(name);
-    toast.success(`Category "${name}" added`);
-    loadCategories();
+  const handleAddCategory = async (name: string) => {
+    try {
+      await addCategory(name);
+      toast.success(`Category "${name}" added`);
+      await loadCategories();
+    } catch (error) {
+      console.error('Error adding category:', error);
+      toast.error('Failed to add category');
+    }
   };
 
   // Show profile section
@@ -130,11 +173,17 @@ const Index = () => {
       <main className="container mx-auto p-4 max-w-md">
         <ExpenseSummary totalAmount={totalAmount} date={selectedDate} />
         
-        <ExpenseList 
-          expenses={expenses}
-          onEditExpense={handleEditExpense}
-          onDeleteExpense={handleDeleteExpense}
-        />
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <ExpenseList 
+            expenses={expenses}
+            onEditExpense={handleEditExpense}
+            onDeleteExpense={handleDeleteExpense}
+          />
+        )}
         
         <Button 
           className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg"
