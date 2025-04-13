@@ -6,32 +6,51 @@ import { toast } from 'sonner';
 interface AuthContextType {
   currentUser: AuthUser | null;
   isLoading: boolean;
+  isConfigError: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({ currentUser: null, isLoading: true });
+const AuthContext = createContext<AuthContextType>({ 
+  currentUser: null, 
+  isLoading: true,
+  isConfigError: false
+});
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isConfigError, setIsConfigError] = useState<boolean>(false);
 
   useEffect(() => {
-    const unsubscribe = subscribeToAuthChanges((user) => {
-      setCurrentUser(user);
+    let unsubscribe = () => {};
+    
+    try {
+      unsubscribe = subscribeToAuthChanges((user) => {
+        setCurrentUser(user);
+        setIsLoading(false);
+        
+        if (user) {
+          toast.success(`Welcome back, ${user.displayName || user.email}`);
+        }
+      });
+    } catch (error) {
+      console.error("Firebase auth error:", error);
+      setIsConfigError(true);
       setIsLoading(false);
       
-      if (user) {
-        toast.success(`Welcome back, ${user.displayName || user.email}`);
+      if (error instanceof Error && error.message.includes('auth/invalid-api-key')) {
+        toast.error("Firebase configuration error. Please check your API keys.");
       }
-    });
+    }
 
     return () => unsubscribe();
   }, []);
 
   const value = {
     currentUser,
-    isLoading
+    isLoading,
+    isConfigError
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
